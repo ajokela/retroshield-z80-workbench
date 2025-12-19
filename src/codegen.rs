@@ -221,10 +221,32 @@ mod tests {
     }
 
     #[test]
+    fn test_emit_byte() {
+        let mut cg = CodeGen::new();
+        cg.emit_byte(0xAA);
+        cg.emit_byte(0xBB);
+        assert_eq!(cg.rom(), &[0xAA, 0xBB]);
+    }
+
+    #[test]
     fn test_emit_word() {
         let mut cg = CodeGen::new();
         cg.emit_word(0x1234);
         assert_eq!(cg.rom(), &[0x34, 0x12]); // Little-endian
+    }
+
+    #[test]
+    fn test_emit_string() {
+        let mut cg = CodeGen::new();
+        cg.emit_string("Hi");
+        assert_eq!(cg.rom(), &[b'H', b'i', 0x00]); // Null-terminated
+    }
+
+    #[test]
+    fn test_emit_string_raw() {
+        let mut cg = CodeGen::new();
+        cg.emit_string_raw("Hi");
+        assert_eq!(cg.rom(), &[b'H', b'i']); // No null terminator
     }
 
     #[test]
@@ -248,5 +270,60 @@ mod tests {
         let l1 = cg.unique_label("loop");
         let l2 = cg.unique_label("loop");
         assert_ne!(l1, l2);
+    }
+
+    #[test]
+    fn test_has_label() {
+        let mut cg = CodeGen::new();
+        assert!(!cg.has_label("foo"));
+        cg.label("foo");
+        assert!(cg.has_label("foo"));
+    }
+
+    #[test]
+    fn test_get_label() {
+        let mut cg = CodeGen::new();
+        cg.emit(&[0x00, 0x00, 0x00]); // 3 bytes
+        cg.label("here");
+        assert_eq!(cg.get_label("here"), Some(3));
+        assert_eq!(cg.get_label("nowhere"), None);
+    }
+
+    #[test]
+    fn test_pos() {
+        let mut cg = CodeGen::new();
+        assert_eq!(cg.pos(), 0);
+        cg.emit(&[0x00, 0x00]);
+        assert_eq!(cg.pos(), 2);
+        cg.emit_word(0x1234);
+        assert_eq!(cg.pos(), 4);
+    }
+
+    #[test]
+    fn test_config() {
+        let config = RomConfig {
+            org: 0x8000,
+            stack_top: 0xFFFF,
+            ram_start: 0xC000,
+        };
+        let mut cg = CodeGen::with_config(config);
+        assert_eq!(cg.pos(), 0x8000);
+        cg.emit(&[0x00]);
+        assert_eq!(cg.pos(), 0x8001);
+    }
+
+    #[test]
+    fn test_rom_mut() {
+        let mut cg = CodeGen::new();
+        cg.emit(&[0x00, 0x00, 0x00]);
+        cg.rom_mut()[1] = 0xFF;
+        assert_eq!(cg.rom(), &[0x00, 0xFF, 0x00]);
+    }
+
+    #[test]
+    fn test_default() {
+        let cg = CodeGen::default();
+        assert_eq!(cg.size(), 0);
+        assert_eq!(cg.pos(), 0);
     }
 }
