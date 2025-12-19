@@ -1,0 +1,16 @@
+[package]
+name = "retroshield-z80-workbench"
+version = "0.1.0"
+edition = "2021"
+rust-version = "1.70"
+authors = ["Alex Jokela"]
+description = "Z80 code generation framework for RetroShield projects"
+license = "BSD-3-Clause"
+repository = "https://github.com/ajokela/retroshield-z80-workbench"
+homepage = "https://github.com/ajokela/retroshield-z80-workbench"
+readme = "README.md"
+keywords = ["z80", "retro", "embedded", "codegen", "retroshield"]
+categories = ["embedded", "development-tools", "compilers"]
+exclude = ["target/", "*.bin"]
+
+[dependencies]
